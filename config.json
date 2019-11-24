@@ -1,0 +1,35 @@
+{
+    "debug": true,
+    "emon": "emon",
+    "mqtt": {
+        "topic": "emon/kitchen_jk",
+        "username": "emonpi",
+        "password": "emonpimqtt2016"
+    },
+    "sensorPollFrequency": 5000,
+    "sensors": [
+        {
+            "id": "28-011913ad6d2a",
+            "alias": "boiler_flow"
+        },
+        {
+            "id": "28-011913938216",
+            "alias": "boiler_return"
+        },
+        {
+            "id": "28-0119137ddea2",
+            "alias": "boiler_environment"
+        }
+    ],
+    "processes": [
+        {
+            "type": "water_kw",
+            "alias": "boiler_kw",
+            "data": {
+                "flow": "boiler_flow",
+                "return": "boiler_return",
+                "flowRate": 0.3857
+            }
+        }
+    ]
+}
