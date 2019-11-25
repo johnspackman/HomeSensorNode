@@ -1,0 +1,34 @@
+{
+    "debug": true,
+    "emon": "emon",
+    "mqtt": {
+        "topic": "emon/hotwater_jk",
+        "username": "emonpi",
+        "password": "emonpimqtt2016"
+    },
+    "sensorPollFrequency": 5000,
+    "sensors": [
+        {
+            "id": "28-011913ad6d2a",
+            "alias": "tank_temp"
+        },
+        {
+            "id": "28-011913ad6d2a",
+            "alias": "hotwater_temp"
+        },
+        {
+            "id": "28-011913ad6d2a",
+            "alias": "heating_temp"
+        }
+    ],
+    "inputs": [
+        {
+            "alias": "valve_hotwater",
+            "gpio": 17
+        },
+        {
+            "alias": "valve_heating",
+            "gpio": 27
+        }
+    ]
+}

@@ -1,0 +1,26 @@
+{
+    "debug": true,
+    "emon": "emon",
+    "mqtt": {
+        "topic": "emon/hotwater_jk",
+        "username": "emonpi",
+        "password": "emonpimqtt2016"
+    },
+    "sensorPollFrequency": 5000,
+    "sensors": [
+        {
+            "id": "28-011913baa605",
+            "alias": "test_temp"
+        }
+    ],
+    "inputs": [
+        {
+            "alias": "valve_test1",
+            "gpio": 17
+        },
+        {
+            "alias": "valve_test2",
+            "gpio": 27
+        }
+    ]
+}

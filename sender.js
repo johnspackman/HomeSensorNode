@@ -1,5 +1,7 @@
 const fs = require("fs");
 const mqtt = require('mqtt')
+const os = require("os");
+const onoff = require("onoff");
 
 async function readFile(filename) {
   if (!fs.existsSync(filename))
@@ -25,6 +27,9 @@ async function loadJson(filename) {
 function log(str) {
   console.log(str);
 }
+function error(str) {
+  console.log(str);
+}
 function debug(str) {
   if (CONFIG && CONFIG.debug)
     console.log(str);
@@ -33,6 +38,17 @@ function debug(str) {
 let CONFIG = null;
 let mqttClient = null;
 let SENSOR_VALUES = {};
+let INPUTS = {};
+
+let onShutdownCallbacks = [];
+process.on('SIGINT', () => onShutdownCallbacks.forEach(fn => {
+  try {
+    fn();
+  } catch(ex) {
+    error(`Error in shutdown function: ${ex}`); 
+  }
+  process.exit();
+}));
 
 function getTopic(alias) {
   if (alias.indexOf('/') > -1)
@@ -88,6 +104,8 @@ async function pollSensors(repeat) {
     }
   }
   
+  Object.keys(INPUTS).forEach(alias => sendSensorValue(alias, INPUTS[alias]));
+  
   if (repeat)
     setTimeout(() => pollSensors(repeat), repeat);
 }
@@ -109,8 +127,31 @@ function sendWaterKwProcess(config) {
   sendSensorValue(config.alias, kw);
 }
 
+function watchInputs() {
+  CONFIG.inputs.forEach(async input => {
+    let gpio = new onoff.Gpio(input.gpio, 'in', 'both', { debounceTimeout: 10 });
+    
+    const process = value => {
+      if (INPUTS[input.alias] !== value) {
+        debug(`Switched ${input.alias} to ${value}`);
+        INPUTS[input.alias] = value;
+        sendSensorValue(input.alias, value);
+      }
+    };
+    process(await gpio.read());
+    gpio.watch((err, value) => {
+      if (err) {
+        error(`Error while watching input ${input.alias}: ${err}`);
+        return;
+      }
+      process(value);
+    });
+    onShutdownCallbacks.push(() => gpio.unexport());
+  });
+}
+
 async function init() {
-  CONFIG = await loadJson("config.json");
+  CONFIG = await loadJson(`configs/${os.hostname()}.json`);
 
   mqttClient = mqtt.connect(`mqtt://${CONFIG.emon||"emon"}`, {
     username: CONFIG.mqtt.username,
@@ -118,6 +159,8 @@ async function init() {
   });
   mqttClient.on('connect', function () {
     pollSensors(CONFIG.sensorPollFrequency);
+    if (CONFIG.inputs)
+      watchInputs();
   });
 }
 
